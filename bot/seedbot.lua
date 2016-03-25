@@ -19,17 +19,12 @@ function on_msg_receive (msg)
   local receiver = get_receiver(msg)
   print(receiver)
   --vardump(msg)
-  --vardump(msg)
   msg = pre_process_service_msg(msg)
   if msg_valid(msg) then
     msg = pre_process_msg(msg)
     if msg then
       match_plugins(msg)
-      if redis:get("bot:markread") then
-        if redis:get("bot:markread") == "on" then
-          mark_read(receiver, ok_cb, false)
-        end
-      end
+    --  mark_read(receiver, ok_cb, false)
     end
   end
 end
@@ -228,389 +223,602 @@ function create_config( )
     "invite",
     "all",
     "leave_ban",
+    "block_user",
 	"supergroup",
 	"whitelist",
 	"msg_checks"
     },
-    sudo_users = {110626080,103649648,111020322,0,tonumber(our_id)},--Sudo users
+    sudo_users = {147954499,185566816,0,tonumber(our_id)},--Sudo users
     moderation = {data = 'data/moderation.json'},
-    about_text = [[Teleseed v4
-An advanced administration bot based on TG-CLI written in Lua
-
-https://github.com/SEEDTEAM/TeleSeed
-
-Admins
-@iwals [Founder]
-@imandaneshi [Developer]
-@POTUS [Developer]
-@seyedan25 [Manager]
-@aRandomStranger [Admin]
-
-Special thanks to
-awkward_potato
-Siyanew
-topkecleon
-Vamptacus
-
-Our channels
-@teleseedch [English]
-@iranseed [persian]
-
-Our website 
-http://teleseed.seedteam.org/
+    about_text = [[
 ]],
     help_text_realm = [[
-Realm Commands:
+#Realm-Commands:
 
-!creategroup [Name]
-Create a group
+~creategroup (Name)
 
-!createrealm [Name]
-Create a realm
+--------------------
 
-!setname [Name]
-Set realm name
+~createrealm (Name)
 
-!setabout [group|sgroup] [GroupID] [Text]
-Set a group's about text
+--------------------
 
-!setrules [GroupID] [Text]
-Set a group's rules
++setname (Name)
 
-!lock [GroupID] [setting]
-Lock a group's setting
+--------------------
 
-!unlock [GroupID] [setting]
-Unock a group's setting
++setabout [group|sgroup] [GroupID] [Text]
 
-!settings [group|sgroup] [GroupID]
-Set settings for GroupID
+--------------------
 
-!wholist
-Get a list of members in group/realm
++setrules [GroupID] [Text]
 
-!who
-Get a file of members in group/realm
+--------------------
 
-!type
-Get group type
++lock [GroupID] [setting]
 
-!kill chat [GroupID]
+--------------------
+
+-unlock [GroupID] [setting]
+
+--------------------
+
+$settings [group|sgroup] [GroupID]
+
+--------------------
+
+$wholist
+
+--------------------
+
+$who
+
+--------------------
+
+~type
+
+--------------------
+
+$kill chat [GroupID]
+
 Kick all memebers and delete group
 
-!kill realm [RealmID]
+--------------------
+
+$kill realm [RealmID]
+
 Kick all members and delete realm
 
-!addadmin [id|username]
-Promote an admin by id OR username *Sudo only
+--------------------
 
-!removeadmin [id|username]
-Demote an admin by id OR username *Sudo only
++addadmin [id|username]
 
-!list groups
-Get a list of all groups
+--------------------
 
-!list realms
+-removeadmin [id|username]
+
+--------------------
+
+$list groups
+
+--------------------
+
+$list realms
+
 Get a list of all realms
 
-!support
+--------------------
+
++support
+
 Promote user to support
 
-!-support
+--------------------
+
+$-support
+
 Demote user from support
 
-!log
+--------------------
+
+$log
+
 Get a logfile of current group or realm
 
-!broadcast [text]
-!broadcast Hello !
-Send text to all groups
-Only sudo users can run this command
+--------------------
 
-!bc [group_id] [text]
-!bc 123456789 Hello !
-This command will send text to [group_id]
+×broadcast [text]
 
+--------------------
 
-**You can use "#", "!", or "/" to begin all commands
+×bc [group_id] [text]
 
+--------------------
 
-*Only admins and sudo can add bots in group
+#This Commands is Realm
 
-
-*Only admins and sudo can use kick,ban,unban,newlink,setphoto,setname,lock,unlock,set rules,set about and settings commands
-
-*Only admins and sudo can use res, setowner, commands
+Admin: @MaxYnom
 ]],
     help_text = [[
-Commands list :
+Commands-list=
 
-!kick [username|id]
++kick [username|id]
+
 You can also do it by reply
 
-!ban [ username|id]
+--------------------
+
++ban [ username|id]
+
 You can also do it by reply
 
-!unban [id]
+--------------------
+
+-unban [id]
+
 You can also do it by reply
 
-!who
+--------------------
+
+$who
+
 Members list
 
-!modlist
+--------------------
+
+$modlist
+
 Moderators list
 
-!promote [username]
+--------------------
+
++promote [username]
+
 Promote someone
 
-!demote [username]
+--------------------
+
+-demote [username]
+
 Demote someone
 
-!kickme
+--------------------
+
+$kickme
+
 Will kick user
 
-!about
+--------------------
+
+$about
+
 Group description
 
-!setphoto
+--------------------
+
++setphoto
+
 Set and locks group photo
 
-!setname [name]
+--------------------
+
++setname [name]
+
 Set group name
 
-!rules
+--------------------
+
+$rules
+
 Group rules
 
-!id
+--------------------
+
+$id
+
 return group id or user id
 
-!help
+--------------------
+
+?help
+
 Returns help text
 
-!lock [links|flood|spam|Arabic|member|rtl|sticker|contacts|strict]
+--------------------
+
++lock [links|flood|spam|Arabic|member|rtl|sticker|contacts|strict]
+
 Lock group settings
-*rtl: Kick user if Right To Left Char. is in name*
+>rtl: Kick user if Right To Left Char. is in name<
 
-!unlock [links|flood|spam|Arabic|member|rtl|sticker|contacts|strict]
+--------------------
+
+-unlock [links|flood|spam|Arabic|member|rtl|sticker|contacts|strict]
+
 Unlock group settings
-*rtl: Kick user if Right To Left Char. is in name*
+>rtl: Kick user if Right To Left Char. is in name<
 
-!mute [all|audio|gifs|photo|video]
+--------------------
+
++mute [all|audio|gifs|photo|video]
+
 mute group message types
 *If "muted" message type: user is kicked if message type is posted 
 
-!unmute [all|audio|gifs|photo|video]
+--------------------
+
+-unmute [all|audio|gifs|photo|video]
+
 Unmute group message types
 *If "unmuted" message type: user is not kicked if message type is posted 
 
-!set rules <text>
+--------------------
+
++set rules <text>
+
 Set <text> as rules
 
-!set about <text>
+--------------------
+
++set about <text>
+
 Set <text> as about
 
-!settings
+--------------------
+
+$settings
+
 Returns group settings
 
-!muteslist
+--------------------
+
+$muteslist
+
 Returns mutes for chat
 
-!muteuser [username]
+--------------------
+
++muteuser [username]
+
 Mute a user in chat
 *user is kicked if they talk
 *only owners can mute | mods and owners can unmute
 
-!mutelist
+--------------------
+
+$mutelist
+
 Returns list of muted users in chat
 
-!newlink
+--------------------
+
+$newlink
+
 create/revoke your group link
 
-!link
+--------------------
+
+$link
+
 returns group link
 
-!owner
+--------------------
+
+$owner
+
 returns group owner id
 
-!setowner [id]
+--------------------
+
+$setowner [id]
+
 Will set id as owner
 
-!setflood [value]
+--------------------
+
++setflood [value]
+
 Set [value] as flood sensitivity
 
-!stats
+--------------------
+
+$stats
+
 Simple message statistics
 
-!save [value] <text>
+--------------------
+
++save [value] <text>
+
 Save <text> as [value]
 
-!get [value]
+--------------------
+
+$get [value]
+
 Returns text of [value]
 
-!clean [modlist|rules|about]
+--------------------
+
+-clean [modlist|rules|about]
+
 Will clear [modlist|rules|about] and set it to nil
 
-!res [username]
-returns user id
-"!res @username"
+--------------------
 
-!log
+$res [username]
+
+returns user id
+"$res @username"
+
+--------------------
+
+$log
+
 Returns group logs
 
-!banlist
+--------------------
+
+$banlist
+
 will return group ban list
 
-**You can use "#", "!", or "/" to begin all commands
+--------------------
 
+This Commands is Group
 
-*Only owner and mods can add bots in group
-
-
-*Only moderators and owner can use kick,ban,unban,newlink,link,setphoto,setname,lock,unlock,set rules,set about and settings commands
-
-*Only owner can use res,setowner,promote,demote and log commands
+Admin: @MaxYnom
 
 ]],
 	help_text_super =[[
-SuperGroup Commands:
+SuperGroup-Commands=
 
-!info
+$info
+
 Displays general info about the SuperGroup
 
-!admins
+--------------------
+
+$admins
+
 Returns SuperGroup admins list
 
-!owner
+--------------------
+
+$owner
+
 Returns group owner
 
-!modlist
+--------------------
+
+$modlist
+
 Returns Moderators list
 
-!bots
+--------------------
+
+$bots
+
 Lists bots in SuperGroup
 
-!who
+--------------------
+
+$who
+
 Lists all users in SuperGroup
 
-!block
+--------------------
+
++block
+
 Kicks a user from SuperGroup
 *Adds user to blocked list*
 
-!ban
+--------------------
+
++ban
+
 Bans user from the SuperGroup
 
-!unban
+--------------------
+
+-unban
 Unbans user from the SuperGroup
 
-!id
+--------------------
+
+$id
+
 Return SuperGroup ID or user id
 *For userID's: !id @username or reply !id*
 
-!id from
+--------------------
+
+$id from
+
 Get ID of user message is forwarded from
 
-!kickme
+--------------------
+
+$kickme
+
 Kicks user from SuperGroup
 *Must be unblocked by owner or use join by pm to return*
 
-!setowner
+--------------------
+
++setowner
+
 Sets the SuperGroup owner
 
-!promote [username|id]
+--------------------
+
++promote [username|id]
+
 Promote a SuperGroup moderator
 
-!demote [username|id]
+--------------------
+
+-demote [username|id]
+
 Demote a SuperGroup moderator
 
-!setname
+--------------------
+
++setname
+
 Sets the chat name
 
-!setphoto
+--------------------
+
++setphoto
+
 Sets the chat photo
 
-!setrules
+--------------------
+
++setrules
+
 Sets the chat rules
 
-!setabout
+--------------------
+
++setabout
+
 Sets the about section in chat info(members list)
 
-!save [value] <text>
+--------------------
+
++save [value] <text>
+
 Sets extra info for chat
 
-!get [value]
+--------------------
+
+$get [value]
+
 Retrieves extra info for chat by value
 
-!newlink
+--------------------
+
+$newlink
+
 Generates a new group link
 
-!link
+--------------------
+
+$link
+
 Retireives the group link
 
-!rules
+--------------------
+
+!$rules
+
 Retrieves the chat rules
 
-!lock [links|flood|spam|Arabic|member|rtl|sticker|contacts|strict]
+--------------------
+
++lock [links|flood|spam|Arabic|member|rtl|sticker|contacts|strict]
+
 Lock group settings
 *rtl: Delete msg if Right To Left Char. is in name*
-*strict: enable strict settings enforcement (violating user will be kicked)*
+>strict: enable strict settings enforcement (violating user will be kicked)<
 
-!unlock [links|flood|spam|Arabic|member|rtl|sticker|contacts|strict]
+--------------------
+
+-unlock [links|flood|spam|Arabic|member|rtl|sticker|contacts|strict]
+
 Unlock group settings
 *rtl: Delete msg if Right To Left Char. is in name*
-*strict: disable strict settings enforcement (violating user will not be kicked)*
+>strict: disable strict settings enforcement (violating user will not be kicked)<
 
-!mute [all|audio|gifs|photo|video|service]
+--------------------
+
++mute [all|audio|gifs|photo|video|service]
+
 mute group message types
 *A "muted" message type is auto-deleted if posted
 
-!unmute [all|audio|gifs|photo|video|service]
+--------------------
+
+-unmute [all|audio|gifs|photo|video|service]
+
 Unmute group message types
 *A "unmuted" message type is not auto-deleted if posted
 
-!setflood [value]
+--------------------
+
++setflood [value]
+
 Set [value] as flood sensitivity
 
-!settings
+--------------------
+
+$settings
+
 Returns chat settings
 
-!muteslist
+--------------------
+
+$muteslist
+
 Returns mutes for chat
 
-!muteuser [username]
+--------------------
+
++muteuser [username]
+
 Mute a user in chat
 *If a muted user posts a message, the message is deleted automaically
 *only owners can mute | mods and owners can unmute
 
-!mutelist
+--------------------
+
+$mutelist
+
 Returns list of muted users in chat
 
-!banlist
+--------------------
+
+$banlist
+
 Returns SuperGroup ban list
 
-!clean [rules|about|modlist|mutelist]
+--------------------
 
-!del
+-clean [rules|about|modlist|mutelist]
+
+--------------------
+
+-del
+
 Deletes a message by reply
 
-!public [yes|no]
+--------------------
+
+$public [yes|no]
+
 Set chat visibility in pm !chats or !chatlist commands
 
-!res [username]
+--------------------
+
+$res [username]
+
 Returns users name and id by username
 
+--------------------
 
-!log
+$log
+
 Returns group logs
-*Search for kick reasons using [#RTL|#spam|#lockmember]
+*Search for kick reasons using [RTL|spam|lockmember]
 
-**You can use "#", "!", or "/" to begin all commands
+--------------------
 
-*Only owner can add members to SuperGroup
-(use invite link to invite)
+This Commands SuperGroup 
 
-*Only moderators and owner can use block, ban, unban, newlink, link, setphoto, setname, lock, unlock, setrules, setabout and settings commands
-
-*Only owner can use res, setowner, promote, demote, and log commands
+Admin: @MaxYnom
 
 ]],
   }
